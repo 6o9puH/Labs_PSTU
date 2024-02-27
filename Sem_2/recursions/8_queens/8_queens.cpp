@@ -5,17 +5,6 @@ using namespace std;
 int board[8][8];
 const int Queen = -1;
 
-void resetBoard()
-{
-	for (int y = 0; y < 8; y++)
-	{
-		for (int x = 0; x < 8; x++)
-		{
-			board[y][x] = 0;
-		}
-	}
-}
-
 void showBoard()
 {
 	for (int y = 0; y < 8; y++)
