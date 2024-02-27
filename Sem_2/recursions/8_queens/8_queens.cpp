@@ -100,7 +100,7 @@ bool checkQueen(int n)
 
 int main()
 {
-	int x, y, k = 0;
+	int x, y = 0;
 	
 	cout << "Enter X and Y (first queen)" << endl;
 	cin >> x >> y;
