@@ -106,10 +106,8 @@ int main()
 	cin >> x >> y;
 
 	setQueen(x - 1, y - 1);
-	if (checkQueen(1))
-	{		
-		showBoard();
-	}
+	checkQueen(1);
+	showBoard();
 
 	return 0;
 }
