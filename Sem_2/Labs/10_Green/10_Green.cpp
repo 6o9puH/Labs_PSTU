@@ -4,7 +4,7 @@ using namespace std;
 
 int main()
 {
-	int n, ndel, nadd , eadd;
+	int n, edel, eadd;
 
 	cout << "Enter number of elements" << endl;
 	cin >> n;
@@ -25,19 +25,22 @@ int main()
 
 	cout << endl;
 
-	cout << "Enter number to delete [1;n]" << endl;
-	cin >> ndel;
+	cout << "Enter element to delete" << endl;
+	cin >> edel;
 
 	int* b = new int[n - 1];
 	int j = 0;
+	bool f = true;
 
 	for (int i = 0; i < n; i++)
 	{
-		if (i != ndel - 1)
+		if (a[i] == edel and f == true)
 		{
-			b[j] = a[i];
-			j++;
+			f == false;
+			continue;
 		}
+		b[j] = a[i];
+		j++;
 	}
 
 	cout << endl;
@@ -47,24 +50,19 @@ int main()
 		cout << b[i] << endl;
 	}
 
-	cout << "Enter number to add an element [1;n]" << endl;
-	cin >> nadd;
-	cout << "Enter element" << endl;
+	cout << endl;
+
+	cout << "Enter element to add" << endl;
 	cin >> eadd;
 
 	int* c = new int[n];
 
-	for (int i = 0; i < nadd; i++)
+	for (int i = 0; i < n - 1; i++)
 	{
 		c[i] = b[i];
 	}
 
-	c[nadd] = eadd;
-
-	for (int i = nadd + 1; i < n; i++)
-	{
-		c[i] = b[i - 1];
-	}
+	c[n - 1] = eadd;
 
 	cout << endl;
 
