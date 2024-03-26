@@ -108,7 +108,6 @@ stack eadd(stack s, int key)
 {
 	stack tmp;
 	tmp.init();
-	elem* e = s.top;
 
 	while (s.size != 0)
 	{
