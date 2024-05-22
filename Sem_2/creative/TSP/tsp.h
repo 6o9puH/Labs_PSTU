@@ -39,10 +39,7 @@ struct Graph
 
     void removeNode(int data);
     void removeEdge(int startData, int endData);
-//
-    vector<int> solveTSP(int startNodeData);
-    void tspHelper(int currentNodeData, unordered_set<int>& visited, vector<int>& currentPath, int currentCost, int& bestCost, vector<int>& bestPath, int startNodeData);
-//
+
     int** createNodeMap ();
     void min_line(int** map);
     void min_column(int** map);
