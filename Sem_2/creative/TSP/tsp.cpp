@@ -10,8 +10,10 @@ void Graph::addNode(int data)
         Node* newNode = new Node;
         newNode->data = data;
         nodes[data] = newNode;
+        vnodes.push_back(newNode);//
     }
 }
+
 
 void Graph::addEdge(int fromData, int toData, int weight)
 {
@@ -25,6 +27,7 @@ void Graph::addEdge(int fromData, int toData, int weight)
 
     Edge* newEdge = new Edge();
     newEdge->to = nodes[toData];
+    newEdge->from = nodes[fromData];
     newEdge->weight = weight;
     nodes[fromData]->edges.push_back(newEdge);
 }
@@ -37,6 +40,7 @@ void Graph::clearGraph()
         delete node;
     }
     nodes.clear();
+    vnodes.clear();
 }
 
 void Graph::updateEdgeWeight(int startData, int endData, int newWeight)
@@ -90,6 +94,26 @@ void Graph::removeNode(int data)
     {
         delete it->second;
         nodes.erase(it);
+    }
+
+    Node* nodeToRemove = nullptr;//
+    for (Node* nodeTo : vnodes)
+    {
+        if (nodeTo->data == data)
+        {
+            nodeToRemove = nodeTo;
+            break;
+        }
+    }
+
+    if (nodeToRemove)
+    {
+
+        auto itn = find(vnodes.begin(), vnodes.end(), nodeToRemove);
+        if (itn != vnodes.end())
+        {
+            vnodes.erase(itn);
+        }
     }
 }
 
@@ -234,66 +258,280 @@ void TSP::mouseReleaseEvent(QMouseEvent* event)
     }
 }
 
-
-vector<int> Graph::solveTSP(int startNodeData)
+int** Graph::createNodeMap ()//
 {
-    if (nodes.find(startNodeData) == nodes.end() || nodes.size() < 2)
-    {
-        return {};
-    }
-
-    int bestCost = numeric_limits<int>::max();
-    vector<int> bestPath;
-    unordered_set<int> visited;
-    vector<int> currentPath;
-
-    visited.insert(startNodeData);
-    currentPath.push_back(startNodeData);
-
-    tspHelper(startNodeData, visited, currentPath, 0, bestCost, bestPath, startNodeData);
-
-    if (!bestPath.empty())
-    {
-        bestPath.push_back(startNodeData);
-    }
-
-    return bestPath;
-}
-void Graph::tspHelper(int currentNodeData, unordered_set<int>& visited, vector<int>& currentPath, int currentCost, int& bestCost, vector<int>& bestPath, int startNodeData)
-{
-    if (visited.size() == nodes.size())
-    {
-        for (Edge* edge : nodes[currentNodeData]->edges)
+    int** map = new int*[vnodes.size()];
+        for (int i = 0; i < vnodes.size(); ++i)
         {
-            if (edge->to->data == startNodeData)
+            map[i] = new int[vnodes.size()];
+        }
+    for (int i = 0; i < vnodes.size(); i++)
+    {
+        for (int j = 0; j < vnodes.size(); j++)
+        {
+            if (i != j)
             {
-                int totalCost = currentCost + edge->weight;
-                if (totalCost < bestCost)
+                bool f = false;
+                for (Edge* e : vnodes[i]->edges)
                 {
-                    bestCost = totalCost;
-                    bestPath = currentPath;
+                    if (e->to == vnodes[j])
+                    {
+                        f = true;
+                        map[i][j] = e->weight;
+                        break;
+                    }
                 }
+                if (f == false)
+                {
+                    map[i][j] = -1;
+                }
+            }
+            else
+            {
+                map[i][j] = -1;
+            }
+        }
+    }
+    return map;
+}
+
+void Graph::min_line(int** map)
+{
+    int min;
+    for (int i = 0; i < vnodes.size(); i++)
+    {
+        min = -1;
+        for (int j = 0; j < vnodes.size(); j++)
+        {
+            if ((min > map[i][j] || min == -1) && map[i][j] >= 0)
+            {
+                min = map[i][j];
+            }
+        }
+        for (int j = 0; j < vnodes.size(); j++)
+        {
+            if (map[i][j] != -1)
+            {
+                map[i][j] -= min;
+            }
+        }
+    }
+}
+
+void Graph::min_column(int** map)
+{
+    int min;
+    for (int i = 0; i < vnodes.size(); i++)
+    {
+        min = -1;
+        for (int j = 0; j < vnodes.size(); j++)
+        {
+            if ((min > map[j][i] || min == -1) && map[j][i] >= 0)
+            {
+                min = map[j][i];
+            }
+        }
+        for (int j = 0; j < vnodes.size(); j++)
+        {
+            if (map[j][i] != -1)
+            {
+                map[j][i] -= min;
+            }
+        }
+    }
+}
+
+int Graph::min_str(int** map, int i, int l)
+{
+    int min = -1;
+    for (int j = 0; j < vnodes.size(); j++)
+    {
+        if (j != l)
+        {
+            if ((min > map[i][j] || min == -1) && map[i][j] >= 0)
+            {
+                min = map[i][j];
+            }
+        }
+    }
+    if (min == -1)
+    {
+        min = 0;
+    }
+
+    return min;
+}
+
+int Graph::min_stl(int** map, int i, int l)
+{
+    int min = -1;
+    for (int j = 0; j < vnodes.size(); j++)
+    {
+        if (j != l)
+        {
+            if ((min > map[j][i] || min == -1) && map[j][i] >= 0)
+            {
+                min = map[j][i];
+            }
+        }
+    }
+    if (min == -1)
+    {
+        min = 0;
+    }
+
+    return min;
+}
+
+Edge* Graph::clear_map(int** map)
+{
+    Edge* a = new Edge;
+    int max = -1, k, m;
+    for (int i = 0; i < vnodes.size(); i++)
+    {
+        for (int j = 0; j < vnodes.size(); j++)
+        {
+            if (map[i][j] == 0)
+            {
+                if (max <= min_str(map, i, j) + min_stl(map, j, i))
+                {
+                    max = min_str(map, i, j) + min_stl(map, j, i);
+                    k = i;
+                    m = j;
+                }
+            }
+        }
+    }
+
+    if (max == -1)
+    {
+        return nullptr;
+    }
+
+    for (int i = 0; i < vnodes.size(); i++)
+    {
+        for (int j = 0; j < vnodes.size(); j++)
+        {
+            if (i == k)
+
+            {
+                map[i][j] = -1;
+            }
+            if (j == m)
+            {
+                map[i][j] = -1;
+            }
+        }
+    }
+
+    map[m][k] = -1;
+
+    a->from = vnodes[k];
+    a->to = vnodes[m];
+
+    return a;
+}
+
+vector<int> Graph::TSPsolve()
+{
+    vector<Edge*> rez;
+    vector<int> bestPath;
+    int** map =createNodeMap();
+    if (vnodes.size() == 2)
+    {
+        bestPath.push_back(vnodes[0]->data);
+        bestPath.push_back(vnodes[1]->data);
+        return bestPath;
+    }
+
+    int i = 0;
+    while (i < vnodes.size())
+    {
+        min_line(map);
+        min_column(map);
+        rez.push_back(clear_map(map));
+        i++;
+    }
+
+    for (Edge* e : rez)
+    {
+        if (e == nullptr)
+        {
+            bestPath.push_back(-1);
+            return bestPath;
+        }
+    }
+
+    bestPath.push_back(rez[0]->from->data);
+    bestPath.push_back(rez[0]->to->data);
+    for (int i = 2; i < vnodes.size(); i++)
+    {
+        for (int j = 1; j < rez.size(); j++)
+        {
+            if (rez[j]->from->data == bestPath[i - 1])
+            {
+                bestPath.push_back(rez[j]->to->data);
                 break;
             }
         }
-        return;
     }
 
-    Node* currentNode = nodes[currentNodeData];
-
-    for (Edge* edge : currentNode->edges)
+    for (int i = 0; i < vnodes.size(); i++)
     {
-        if (visited.find(edge->to->data) == visited.end())
+        delete[] map[i];
+    }
+    delete[] map;
+
+    return bestPath;
+}
+
+int Graph::way(vector<int> path)
+{
+    int w = 0;
+    for (int i = 0; i < path.size() - 1; i++)
+    {
+        for (Node* n : vnodes)
         {
-            visited.insert(edge->to->data);
-            currentPath.push_back(edge->to->data);
-
-            tspHelper(edge->to->data, visited, currentPath, currentCost + edge->weight, bestCost, bestPath, startNodeData);
-
-            visited.erase(edge->to->data);
-            currentPath.pop_back();
+            if (n->data == path[i])
+            {
+                for (Node* nod : vnodes)
+                {
+                    if (nod->data == path[i + 1])
+                    {
+                        for (Edge* e : n->edges)
+                        {
+                            if (e->to == nod)
+                            {
+                                w += e->weight;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
+
+    for (Node* n : vnodes)
+    {
+        if (n->data == path[path.size() - 1])
+        {
+            for (Node* nod : vnodes)
+            {
+                if (nod->data == path[0])
+                {
+                    for (Edge* e : n->edges)
+                    {
+                        if (e->to == nod)
+                        {
+                            w += e->weight;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return w;
 }
 
 void TSP::on_pushButton_clicked()
@@ -401,9 +639,24 @@ void TSP::on_pushButton_7_clicked()
 
 void TSP::on_pushButton_8_clicked()
 {
-    int s = ui->lineEdit_11->text().toInt();
-    ui->lineEdit_11->clear();
-    vector<int>shortestPath = graph.solveTSP(s);
+    ui->label_9->clear();
+    ui->label_10->clear();
+    ui->label_11->clear();
+
+    if (graph.vnodes.size() == 0)
+    {
+        ui->label_9->setText("Невозможно решить задачу коммивояжера");
+        return;
+    }
+
+    vector<int>shortestPath = graph.TSPsolve();
+
+    if (shortestPath[0] == -1)
+    {
+        ui->label_9->setText("Невозможно решить задачу коммивояжера");
+        return;
+    }
+
     QString resultString;
     for (int i = 0; i < shortestPath.size(); i++)
     {
@@ -413,6 +666,8 @@ void TSP::on_pushButton_8_clicked()
             resultString.append(", ");
         }
     }
-    ui->lineEdit_11->setText(resultString);
+    ui->label_9->setText(resultString);
+    ui->label_10->setText(QString::number(graph.way(shortestPath)));
+    ui->label_11->setText("Путь: ");
     update();
 }

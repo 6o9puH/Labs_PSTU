@@ -23,10 +23,13 @@ struct Edge
 {
     int weight;
     Node* to;
+    Node* from;
 };
 
 struct Graph
 {
+    vector<Node*> vnodes;
+
     unordered_map<int, Node*> nodes;
 
     void addNode(int data);
@@ -36,9 +39,18 @@ struct Graph
 
     void removeNode(int data);
     void removeEdge(int startData, int endData);
-
+//
     vector<int> solveTSP(int startNodeData);
     void tspHelper(int currentNodeData, unordered_set<int>& visited, vector<int>& currentPath, int currentCost, int& bestCost, vector<int>& bestPath, int startNodeData);
+//
+    int** createNodeMap ();
+    void min_line(int** map);
+    void min_column(int** map);
+    int min_str(int** map, int i, int l);
+    int min_stl(int** map, int i, int l);
+    Edge* clear_map(int** map);
+    vector<int> TSPsolve();
+    int way(vector<int> path);
 };
 
 class TSP : public QMainWindow
